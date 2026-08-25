@@ -12,6 +12,22 @@ rushes → analyse → transcription → plan.json → validation → MP4
 Format de sortie : **1080 × 1920, 30 fps, H.264**, prêt pour TikTok, Reels et
 Shorts.
 
+## À qui ça s'adresse
+
+À toi si tu produis régulièrement de la vidéo verticale et que tu es à l'aise
+avec un terminal. Le montage étant un fichier texte, il se versionne, se
+duplique d'une vidéo à l'autre, et se corrige sans rouvrir quoi que ce soit.
+
+**Ce n'est pas un remplaçant de CapCut.** Si tu montes une vidéo de temps en
+temps à la main, CapCut fera mieux et plus vite. L'intérêt commence quand tu en
+produis beaucoup, avec une identité constante, ou quand tu veux qu'un modèle
+écrive le montage à ta place.
+
+Sur ce dernier point : le moteur fonctionne seul, mais il est conçu pour que
+**[Claude Code](https://claude.com/claude-code) écrive le `plan.json`** à partir
+de tes rushes et d'un brief. Sans lui, tu écris le JSON toi-même, ce qui reste
+faisable mais nettement moins amusant.
+
 ---
 
 ## Voir ce que ça produit
@@ -73,8 +89,8 @@ complète fonctionne sur la machine.
 
 ```
 TikTokEditor/
-├── projects/              ← TOUT le contenu
-│   ├── _library/          bibliothèque partagée entre projets
+├── projects/              ← TOUT ton contenu, rien n'est versionné
+│   ├── _library/          bibliothèque partagée entre tes projets
 │   │   ├── sfx/           bruitages
 │   │   ├── music/         musiques de fond
 │   │   └── brand/         logos
@@ -86,7 +102,7 @@ TikTokEditor/
 │       ├── captions.json  généré  transcription mot à mot
 │       └── plan.json      LE MONTAGE
 │
-├── exports/               SORTIE  les MP4 livrés
+├── exports/               SORTIE  tes MP4, pas versionnés non plus
 │
 ├── src/                   le moteur Remotion
 ├── scripts/               la ligne de commande
@@ -94,8 +110,14 @@ TikTokEditor/
 └── .claude/skills/        la procédure que suit Claude
 ```
 
-Une règle : **rien de généré ne sort de `projects/<slug>/` ou de `exports/`.**
-Un fichier qui traîne à la racine est un bug.
+Deux règles.
+
+**Rien de généré ne sort de `projects/<slug>/` ou de `exports/`.** Un fichier
+qui traîne à la racine est un bug.
+
+**Le contenu de `projects/` et de `exports/` n'est jamais versionné.** Tes
+rushes, tes briefs, tes transcriptions et tes montages restent chez toi. Si tu
+forkes ce dépôt, tu ne publieras rien de ce que tu produis avec.
 
 `projects/` sert de dossier public à Remotion. C'est pourquoi la bibliothèque
 partagée vit dedans, sous `_library/` : elle est servie au rendu sans être
@@ -104,6 +126,10 @@ dupliquée dans chaque projet.
 ---
 
 ## Monter une vidéo
+
+Le fil ci-dessous prend un exemple, `vlog-lisbonne`. Remplace-le par le nom de
+ton projet. Chaque commande est indépendante : tu peux en relancer une sans
+recommencer les précédentes.
 
 ### 1. Créer le projet
 
@@ -160,15 +186,22 @@ Liste les endroits où couper sans manger un mot. Étape courte et décisive :
 c'est elle qui fait la différence entre un montage propre et des coupes qui
 ressemblent à des bugs. Voir [docs/MONTAGE.md](docs/MONTAGE.md).
 
-### 7. Demander le montage à Claude
+### 7. Écrire le montage
 
-Remplir `brief.md`, puis dans Claude Code :
+C'est l'étape où tu décides. Deux façons de faire.
+
+**Avec Claude Code**, la façon prévue : remplis `brief.md`, puis demande
 
 > Monte vlog-lisbonne. Hook sur la vue du belvédère, 30 s max, CTA à la fin.
 
-Claude lit `media.json`, `captions.json`, les silences et le brief, écrit
-`plan.json`, le valide et le rend. La procédure qu'il suit est dans
-[.claude/skills/tiktok-montage/SKILL.md](.claude/skills/tiktok-montage/SKILL.md).
+Il lit `media.json`, `captions.json`, les silences et ton brief, écrit
+`plan.json`, le valide et le rend. La procédure qu'il suit est versionnée dans
+[.claude/skills/tiktok-montage/SKILL.md](.claude/skills/tiktok-montage/SKILL.md) :
+c'est un fichier comme un autre, adapte-le à ton style de montage.
+
+**À la main**, si tu n'utilises pas Claude Code : ouvre `plan.json` et écris les
+clips. [docs/PLAN.md](docs/PLAN.md) documente chaque champ, et
+`npm run validate` t'arrête sur toute incohérence avant le rendu.
 
 ### 8. Regarder et corriger
 
@@ -290,14 +323,19 @@ conditions varient. Voir [projects/_library/LICENCES.md](projects/_library/LICEN
 
 ---
 
-## Distribuer l'outil
+## Retours bienvenus
 
-Le dépôt ne contient que du texte : une quarantaine de fichiers, environ 420 Ko.
-`.gitignore` exclut les rushes, les exports, la clé API, le projet de
-démonstration (qui se régénère) et le contenu de la bibliothèque partagée.
+Ce dépôt est public pour être critiqué. Ce qui m'intéresse en particulier :
 
-Personne n'a donc besoin de télécharger un seul octet de vidéo pour essayer :
-`npm run demo -- --go` fabrique tout ce qu'il faut sur place.
+- **ce qui casse chez toi.** `npm run doctor` puis `npm run doctor -- --full`
+  donnent un diagnostic complet, colle-le dans une issue
+- **les montages ratés.** Si le moteur produit quelque chose de moche, le
+  `plan.json` qui l'a produit suffit à reproduire
+- **ce qui manque au schéma.** Un champ absent est un montage impossible
+
+Le dépôt ne contient que du texte : une quarantaine de fichiers, environ 350 Ko.
+Aucun projet, aucun rush, aucun rendu. `npm run demo -- --go` fabrique tout ce
+qu'il faut sur place, donc rien à télécharger pour essayer.
 
 ---
 

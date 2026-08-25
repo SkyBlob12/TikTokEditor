@@ -1,6 +1,6 @@
 ---
 name: tiktok-montage
-description: Monter une video TikTok verticale a partir de rushes, en ecrivant un plan de montage plan.json rendu par Remotion. A utiliser des que Clement demande de monter, remonter, recadrer, sous-titrer ou raccourcir une video pour TikTok, Reels ou Shorts dans ce projet.
+description: Monter une video TikTok verticale a partir de rushes, en ecrivant un plan de montage plan.json rendu par Remotion. A utiliser des que l utilisateur demande de monter, remonter, recadrer, sous-titrer ou raccourcir une video pour TikTok, Reels ou Shorts dans ce projet.
 ---
 
 # Monter une video TikTok

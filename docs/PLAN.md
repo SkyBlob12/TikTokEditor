@@ -237,7 +237,7 @@ Trois ou quatre bruitages maximum sur une vidéo d'une minute.
   "uppercase": true,
   "offset": 0,
   "syncTo": "media/proxy/rush.mp4",
-  "replace": {"Odissa": "Odyssa"}
+  "replace": {"Odissey": "Odyssey"}
 }
 ```
 

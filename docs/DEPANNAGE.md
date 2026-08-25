@@ -195,7 +195,7 @@ commencent à l'intérieur d'un silence détecté par `npm run cuts`.
 Le modèle l'écrit au son.
 
 ```json
-"captions": {"replace": {"Odissa": "Odyssa"}}
+"captions": {"replace": {"Odissey": "Odyssey"}}
 ```
 
 La correction s'applique au rendu, donc elle survit à une re-transcription.
