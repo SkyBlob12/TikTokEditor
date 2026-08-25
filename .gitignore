@@ -1,0 +1,23 @@
+node_modules/
+
+# Les rushes et les rendus ne sont jamais versionnes : trop lourds, et souvent
+# personnels. Seuls les fichiers texte d'un projet (brief, plan, transcription)
+# meritent d'etre suivis.
+projects/*/media/
+exports/
+.env
+
+# La bibliotheque partagee contient des fichiers sous licence : a ne pas
+# redistribuer avec l'outil.
+projects/_library/sfx/*
+projects/_library/music/*
+projects/_library/brand/*
+!projects/_library/*/LISEZ-MOI.md
+
+# Le projet de demonstration, lui, doit fonctionner a la sortie de la boite.
+!projects/demo/media/
+
+# Fichiers de travail
+projects/*/.transcribe.wav
+whisper-bin-x64.zip
+tmp/

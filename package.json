@@ -1,0 +1,38 @@
+{
+  "name": "tiktok-editor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Montage TikTok automatise : Claude ecrit le plan de montage, Remotion le rend en 1080x1920.",
+  "scripts": {
+    "doctor": "node scripts/doctor.mjs",
+    "studio": "remotion studio",
+    "new": "node scripts/new-project.mjs",
+    "ingest": "node scripts/ingest.mjs",
+    "proxy": "node scripts/proxy.mjs",
+    "transcribe": "node scripts/transcribe.mjs",
+    "cuts": "node scripts/cuts.mjs",
+    "sfx": "node scripts/sfx.mjs",
+    "validate": "node scripts/validate.mjs",
+    "render": "node scripts/render.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test scripts/test.mjs"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.517",
+    "@remotion/captions": "4.0.517",
+    "@remotion/cli": "4.0.517",
+    "@remotion/google-fonts": "4.0.517",
+    "@remotion/install-whisper-cpp": "4.0.517",
+    "@remotion/renderer": "4.0.517",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.517",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "typescript": "5.9.3"
+  }
+}
