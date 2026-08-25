@@ -12,6 +12,16 @@ rushes → analyse → transcription → plan.json → validation → MP4
 Format de sortie : **1080 × 1920, 30 fps, H.264**, prêt pour TikTok, Reels et
 Shorts.
 
+![Quatre moments d'un montage produit par l'outil](docs/images/apercu.jpg)
+
+*Une vidéo réelle montée avec cet outil : hook remonté depuis le milieu du rush,
+compteur animé calé sur le chiffre prononcé, sous-titres karaoké recalés sur le
+remontage, logo et CTA. 95 s de rush ramenées à 51 s, décrites dans un JSON de
+120 lignes.*
+
+<!-- REMPLACER : glisser la vidéo dans une issue GitHub pour obtenir une URL,
+     ou coller ici le lien TikTok. -->
+
 ## À qui ça s'adresse
 
 À toi si tu produis régulièrement de la vidéo verticale et que tu es à l'aise
@@ -320,6 +330,9 @@ Le code est sous [licence MIT](LICENSE) : fais-en ce que tu veux.
 **Les fichiers de `projects/_library/` n'en font pas partie** et ne sont pas
 dans le dépôt. Bruitages, musiques et logos viennent de banques tierces dont les
 conditions varient. Voir [projects/_library/LICENCES.md](projects/_library/LICENCES.md).
+
+L'image de `docs/images/` n'est pas non plus couverte : c'est une capture d'une
+vidéo personnelle, tous droits réservés.
 
 ---
 

@@ -20,6 +20,10 @@ projects/_library/music/*
 projects/_library/brand/*
 !projects/_library/sfx/LISEZ-MOI.md
 
+# Les captures du README sont versionnees, elles sont legeres et servent la
+# presentation du depot.
+!docs/images/
+
 # Fichiers de travail
 projects/*/.transcribe.wav
 whisper-bin-x64.zip
