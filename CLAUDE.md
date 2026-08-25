@@ -1,6 +1,10 @@
-# CLAUDE.md — TikTokEditor
+# CLAUDE.md
 
-Règles permanentes de ce projet.
+Règles permanentes de ce dépôt, lues par Claude Code à chaque session.
+
+**Ce fichier t'appartient.** Il encode des choix de montage et de code qui
+peuvent ne pas être les tiens. Modifie-le : c'est le moyen le plus direct de
+changer la façon dont Claude travaille sur tes vidéos.
 
 ## Ce que fait cet outil
 
@@ -66,8 +70,9 @@ concerné, puis documente le champ dans `docs/PLAN.md`.
 **Le format est figé : 1080 × 1920, 30 fps, H.264.** Pas de variante sans
 demande explicite.
 
-**Pas de tiret cadratin**, ni dans les textes incrustés ni dans les fichiers
-écrits.
+**Pas de tiret cadratin** (,), ni dans les textes incrustés ni dans les fichiers
+écrits. Convention de ce dépôt : une virgule, un point ou deux-points font le
+travail. Change-la si elle ne te convient pas, ce fichier est à toi.
 
 ## Vérifier un rendu
 

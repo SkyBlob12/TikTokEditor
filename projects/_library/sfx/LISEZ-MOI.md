@@ -1,16 +1,20 @@
 # Bruitages
 
-Depose ici les fichiers son ponctuels (`.mp3`, `.wav`, `.m4a`), puis reference-les
-dans le plan :
+Depose ici tes fichiers son ponctuels (`.mp3`, `.wav`, `.m4a`). Ils sont
+partages entre tous tes projets et se referencent avec le prefixe `library/` :
 
 ```json
 "sfx": [
-  {"src": "media/sfx/whoosh.mp3", "at": 25.29, "volume": 0.6},
-  {"src": "media/sfx/pop.mp3",    "at": 4.10,  "volume": 0.5}
+  {"src": "library/sfx/whoosh.mp3", "at": 25.29, "volume": 0.5},
+  {"src": "library/sfx/pop.mp3",    "at": 4.10,  "volume": 0.45}
 ]
 ```
 
 `at` est l'instant sur la **timeline finale**, pas dans le rush.
+
+`npm run sfx` liste ce que contient ce dossier et mesure, pour chaque fichier,
+le delai avant qu'il frappe. Un son doit etre declenche a
+`instant vise - ce delai`, sinon son impact arrive en retard.
 
 ## Ce qui sert vraiment sur ce format
 
@@ -32,5 +36,5 @@ dans le plan :
 
 ## Ou en trouver
 
-Cherche des banques en licence libre ou CC0. Verifie la licence avant
-publication commerciale.
+Cherche des banques en CC0 ou domaine public. Attention : « royalty-free » ne
+veut pas dire libre de droits. Voir [../LICENCES.md](../LICENCES.md).

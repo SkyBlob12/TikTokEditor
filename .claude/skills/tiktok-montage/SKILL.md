@@ -8,6 +8,10 @@ description: Monter une video TikTok verticale a partir de rushes, en ecrivant u
 Tu ecris un **plan de montage** (`projects/<slug>/plan.json`). Remotion le rend.
 Tu ne touches jamais aux fichiers video directement.
 
+> Cette procedure est un fichier du depot, pas une regle gravee. Les seuils de
+> montage plus bas viennent d'erreurs constatees a l'usage : ils sont a ajuster
+> selon le format et le style de celui qui s'en sert.
+
 ## La procedure, dans l'ordre
 
 ### 1. Connaitre le materiau
@@ -34,7 +38,7 @@ npm run proxy -- <slug>
 Puis **pointe les clips sur `media/proxy/<nom>.mp4`**, pas sur l'original.
 
 Sans ca le rendu casse : Remotion n'arrive pas a extraire une frame de 4K HEVC
-dans le delai imparti. Ce n'est pas une perte de qualite — le proxy est deja a
+dans le delai imparti. Ce n'est pas une perte de qualite, le proxy est deja a
 la resolution de livraison.
 
 ### 2. Les sous-titres, si la video parle
@@ -90,7 +94,7 @@ Quand la voix vient des clips eux-memes (talking head, vlog), ajoute :
 ```
 
 Chaque mot est alors replace sur chaque extrait qui le contient. Un segment
-rejoue deux fois voit ses sous-titres joues deux fois — c'est ce qui rend
+rejoue deux fois voit ses sous-titres joues deux fois, c'est ce qui rend
 possible un hook pris au milieu de la video.
 
 **Ne mets pas `syncTo`** quand la voix est un fichier audio joue en entier
@@ -118,7 +122,7 @@ phrase enchaine, et il ne faut pas couper la.
 Et avant de livrer, verifie ce que contient vraiment chaque bloc : transcris le
 segment isole plutot que de deduire son contenu des timings.
 
-### 4. Valider — toujours, avant de dire que c'est fait
+### 4. Valider, toujours, avant de dire que c'est fait
 
 ```bash
 npm run validate -- <slug>
@@ -171,7 +175,7 @@ lit au lieu de regarder.
 **La musique reste sous la voix** : `musicVolume` entre `0.08` et `0.15`, et
 `duck: true`. Si pas de voix off, on peut monter a `0.35`.
 
-**Le CTA arrive a la fin, jamais avant** — et seulement si le brief le demande.
+**Le CTA arrive a la fin, jamais avant**, et seulement si le brief le demande.
 
 ## Les transitions
 
@@ -183,7 +187,7 @@ lit au lieu de regarder.
 | `whip` 0.15–0.25 s | enchainement rapide, meme scene |
 | `zoom-punch` 0.15–0.2 s | accent sur un mot fort |
 | `slide-left` / `slide-right` | avant/apres, comparaison |
-| aucune | par defaut — **le cut sec est la transition la plus efficace** |
+| aucune | par defaut, **le cut sec est la transition la plus efficace** |
 
 Pas plus de deux ou trois transitions animees dans une video de 15 s.
 

@@ -95,7 +95,7 @@ npm run render -- mon-projet --crf 23
 
 ### Les couleurs sont délavées, les tons chair verdâtres
 
-Le rush est en HDR — Dolby Vision ou HLG, ce que filme un iPhone récent. Une
+Le rush est en HDR, Dolby Vision ou HLG, ce que filme un iPhone récent. Une
 conversion sans tone mapping donne une image techniquement valide et
 visuellement fausse.
 
@@ -203,7 +203,7 @@ La correction s'applique au rendu, donc elle survit à une re-transcription.
 ### Un mot s'affiche alors qu'on ne l'entend pas encore
 
 Il chevauche une coupe. Le moteur n'affiche un mot que si 60 % de sa durée tombe
-dans le plan — si le cas persiste, la borne du clip tombe en plein milieu du mot.
+dans le plan, si le cas persiste, la borne du clip tombe en plein milieu du mot.
 Voir `npm run cuts`.
 
 ---

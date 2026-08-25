@@ -1,9 +1,14 @@
 # La méthode de montage
 
-Ce document n'explique pas les champs du plan — c'est le rôle de
+Ce document n'explique pas les champs du plan, c'est le rôle de
 [PLAN.md](PLAN.md). Il explique **les décisions** : où couper, quoi garder, quoi
-jeter. Ce sont les règles que Claude applique, et celles qui font la différence
-entre un montage qui tient et un montage qui ressemble à un bug.
+jeter.
+
+Ce sont les règles que Claude applique par défaut. Elles viennent de montages
+ratés puis corrigés, sur un format précis : la prise de parole face caméra en
+vertical. Adapte-les à ton style plutôt que de les suivre aveuglément, en
+modifiant [la skill](../.claude/skills/tiktok-montage/SKILL.md) et
+[CLAUDE.md](../CLAUDE.md).
 
 ---
 
@@ -27,7 +32,7 @@ c'est la seule source fiable pour placer une coupe.
 ## Où couper
 
 **Les bornes de mots d'une transcription ne disent pas où couper.** Elles sont
-contiguës — la fin d'un mot est le début du suivant — et le modèle les fait
+contiguës (la fin d'un mot est le début du suivant) et le modèle les fait
 dériver de plusieurs centaines de millisecondes. Couper dessus tranche la
 dernière syllabe, ou laisse une seconde de vide.
 
@@ -68,7 +73,7 @@ Quand on remonte un segment en hook, il faut renseigner `captions.syncTo` : sans
 ça les sous-titres partent en vrac, puisque leurs timings sont ceux du fichier
 source. Voir [PLAN.md](PLAN.md#captions--les-sous-titres).
 
-Un segment peut apparaître deux fois — en hook puis à sa place — sans que ça
+Un segment peut apparaître deux fois, en hook puis à sa place, sans que ça
 choque, à condition que ce soit assumé. En revanche, **deux passages qui disent
 la même chose coup sur coup** sont un doublon : on en garde un.
 
@@ -104,7 +109,7 @@ sur un plan fixe, un effet qui se voit se lit comme un défaut de lecture.
 ce délai pour chaque fichier. Un son qui doit frapper à `T` se déclenche à
 `T − attaque`.
 
-Volume entre 0.3 et 0.6. Trois ou quatre sons maximum sur une minute — au-delà,
+Volume entre 0.3 et 0.6. Trois ou quatre sons maximum sur une minute. Au-delà,
 ça devient une machine à sous.
 
 Un bruitage se pose sur un moment **déjà marqué visuellement** : une coupe, un
@@ -120,7 +125,7 @@ comme une erreur.
 **Zone sûre : `y` entre 0.12 et 0.80.** En dessous de 0.80, la légende et les
 boutons TikTok recouvrent tout. Les sous-titres vivent à `0.72`.
 
-Une page de sous-titres **ne doit jamais enjamber une coupe** — le moteur s'en
+Une page de sous-titres **ne doit jamais enjamber une coupe**, le moteur s'en
 charge, à condition que `syncTo` soit renseigné.
 
 Vérifier l'orthographe des noms propres : un modèle de transcription les écrit au

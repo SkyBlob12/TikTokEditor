@@ -221,7 +221,7 @@ npm run render -- vlog-lisbonne --draft --from 20 --to 35
 
 `--draft` rend en 540 × 960 à 15 fps : **2,7 fois plus rapide et 19 fois plus
 léger** qu'un rendu final. On n'y juge pas la qualité d'image, on y juge le
-montage — le rythme, les coupes, la synchro des sous-titres. C'est ce qu'on
+montage, le rythme, les coupes, la synchro des sous-titres. C'est ce qu'on
 regarde vingt fois avant le rendu final, qu'on ne lance qu'une seule.
 
 `--from` et `--to`, en secondes, ne rendent que le passage sur lequel on
@@ -277,25 +277,25 @@ npm run doctor -- --full
 
 ## Ce que sait faire le moteur
 
-**Image** — découpe et réordonnancement, vitesse, Ken Burns, recadrage, miroir,
+**Image**, découpe et réordonnancement, vitesse, Ken Burns, recadrage, miroir,
 filtres CSS, transitions (fade, whip, zoom-punch, slides).
 
-**Textes** — presets prêts à l'emploi (hook, sticker, label, CTA), polices
+**Textes**, presets prêts à l'emploi (hook, sticker, label, CTA), polices
 Montserrat / Anton / Bebas, animations d'entrée et de sortie.
 
-**Compteurs animés** — un chiffre qui monte et atteint sa valeur pile quand il
+**Compteurs animés**, un chiffre qui monte et atteint sa valeur pile quand il
 est prononcé.
 
-**Images** — logos et captures, avec pastille de fond optionnelle pour rester
+**Images**, logos et captures, avec pastille de fond optionnelle pour rester
 lisibles sur n'importe quel arrière-plan.
 
-**Sous-titres** — karaoké mot à mot, quatre styles, recalage automatique sur le
+**Sous-titres**, karaoké mot à mot, quatre styles, recalage automatique sur le
 remontage, correction de lexique, jamais à cheval sur une coupe.
 
-**Son** — voix, musique avec ducking automatique sur la parole, bruitages placés
+**Son**, voix, musique avec ducking automatique sur la parole, bruitages placés
 à la milliseconde avec compensation de l'attaque.
 
-**Effets** — pulse, shake, flash, calibrés pour se sentir plutôt que se voir.
+**Effets**, pulse, shake, flash, calibrés pour se sentir plutôt que se voir.
 
 La référence complète de chaque champ est dans [docs/PLAN.md](docs/PLAN.md).
 
