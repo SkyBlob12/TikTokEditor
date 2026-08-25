@@ -14,8 +14,8 @@ projects/_library/music/*
 projects/_library/brand/*
 !projects/_library/*/LISEZ-MOI.md
 
-# Le projet de demonstration, lui, doit fonctionner a la sortie de la boite.
-!projects/demo/media/
+# Le projet de demonstration est genere par `npm run demo`, jamais versionne.
+projects/demo/
 
 # Fichiers de travail
 projects/*/.transcribe.wav

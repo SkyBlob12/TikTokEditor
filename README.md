@@ -14,6 +14,23 @@ Shorts.
 
 ---
 
+## Voir ce que ça produit
+
+```bash
+npm install
+npm run demo -- --go
+```
+
+Génère un projet de démonstration de toutes pièces (rushes, musique, bruitages,
+transcription) et le rend. Environ une minute, rien à fournir.
+
+Le montage obtenu utilise à peu près tout le moteur : coupes, Ken Burns,
+transitions, sous-titres karaoké, compteur animé, effets de plan, bruitages,
+musique. Ouvre `projects/demo/plan.json`, change une ligne, relance
+`npm run render -- demo --draft` : c'est tout le principe de l'outil.
+
+---
+
 ## Installation
 
 ```bash
@@ -198,6 +215,7 @@ fichier livré.
 | Commande | Rôle |
 |---|---|
 | `npm run doctor` | Vérifie que la machine peut faire tourner l'outil |
+| `npm run demo` | Génère un projet de démonstration complet |
 | `npm run new -- <slug>` | Crée un projet |
 | `npm run ingest -- <slug>` | Analyse les rushes → `media.json` |
 | `npm run proxy -- <slug>` | Transcode les rushes lourds (4K, HEVC, HDR, 60 fps) |
@@ -262,19 +280,24 @@ La référence complète de chaque champ est dans [docs/PLAN.md](docs/PLAN.md).
 
 ---
 
+## Licence
+
+Le code est sous [licence MIT](LICENSE) : fais-en ce que tu veux.
+
+**Les fichiers de `projects/_library/` n'en font pas partie** et ne sont pas
+dans le dépôt. Bruitages, musiques et logos viennent de banques tierces dont les
+conditions varient. Voir [projects/_library/LICENCES.md](projects/_library/LICENCES.md).
+
+---
+
 ## Distribuer l'outil
 
-Le dépôt ne contient que du texte : 43 fichiers, 420 Ko. `.gitignore` exclut les
-rushes, les exports, la clé API et **le contenu de la bibliothèque partagée**.
+Le dépôt ne contient que du texte : une quarantaine de fichiers, environ 420 Ko.
+`.gitignore` exclut les rushes, les exports, la clé API, le projet de
+démonstration (qui se régénère) et le contenu de la bibliothèque partagée.
 
-Ce dernier point est volontaire. Les bruitages, musiques et logos viennent de
-banques tierces dont les licences varient : certaines interdisent la
-redistribution du fichier lui-même, même quand son usage dans une vidéo est
-autorisé. Voir [projects/_library/LICENCES.md](projects/_library/LICENCES.md),
-à remplir avant toute distribution.
-
-Le plus simple reste de livrer sans les fichiers : l'acheteur apporte sa banque,
-et `npm run doctor` lui signale qu'elle est vide.
+Personne n'a donc besoin de télécharger un seul octet de vidéo pour essayer :
+`npm run demo -- --go` fabrique tout ce qu'il faut sur place.
 
 ---
 

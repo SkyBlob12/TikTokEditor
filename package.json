@@ -6,6 +6,7 @@
   "description": "Montage TikTok automatise : Claude ecrit le plan de montage, Remotion le rend en 1080x1920.",
   "scripts": {
     "doctor": "node scripts/doctor.mjs",
+    "demo": "node scripts/demo.mjs",
     "studio": "remotion studio",
     "new": "node scripts/new-project.mjs",
     "ingest": "node scripts/ingest.mjs",
