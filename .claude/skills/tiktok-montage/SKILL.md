@@ -90,7 +90,7 @@ timeline finale.
 Quand la voix vient des clips eux-memes (talking head, vlog), ajoute :
 
 ```json
-"captions": {"syncTo": "media/IMG_3544.MOV", ...}
+"captions": {"syncTo": "media/proxy/rush.mp4", ...}
 ```
 
 Chaque mot est alors replace sur chaque extrait qui le contient. Un segment

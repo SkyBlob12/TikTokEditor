@@ -160,8 +160,8 @@ export const captionsSchema = z.object({
   /**
    * Corrections de transcription, appliquees au rendu.
    *
-   * Un modele de transcription ecrit les noms propres au son : « Odissa » pour
-   * « Odyssa ». Corriger ici plutot que dans captions.json, qui est regenere a
+   * Un modele de transcription ecrit les noms propres au son : « Odissey » pour
+   * « Odyssey ». Corriger ici plutot que dans captions.json, qui est regenere a
    * chaque transcription. La comparaison ignore la casse et la ponctuation.
    */
   replace: z.record(z.string(), z.string()).optional(),
