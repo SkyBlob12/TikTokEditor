@@ -35,11 +35,20 @@ par vidéo). Copier `.env.example` vers `.env` pour le renseigner.
 ### Vérifier que tout marche
 
 ```bash
-npm run render -- demo
+npm run doctor
 ```
 
-Rend `exports/demo.mp4` : 12 s avec hook, sous-titres karaoké, sticker, CTA et
-musique avec ducking. Les rushes de démo sont générés, il n'y a rien à fournir.
+Contrôle Node, FFmpeg, le filtre de tone mapping HDR, Remotion, le navigateur de
+rendu, les modèles de transcription, l'arborescence et l'espace disque. Chaque
+problème est annoncé avec la commande qui le corrige.
+
+```bash
+npm run doctor -- --full
+```
+
+Ajoute un vrai rendu de bout en bout : génère un rush de test, écrit un montage
+minimal, le rend, et nettoie tout derrière. Une minute pour savoir que la chaîne
+complète fonctionne sur la machine.
 
 ---
 
@@ -153,7 +162,26 @@ npm run studio -- --props='{"project":"vlog-lisbonne"}'
 Le Studio Remotion s'ouvre : timeline, lecture, scrub. Après modification de
 `plan.json`, cliquer sur rafraîchir.
 
-### 9. Rendre
+### 9. Itérer sans attendre
+
+```bash
+npm run render -- vlog-lisbonne --draft
+npm run render -- vlog-lisbonne --draft --from 20 --to 35
+```
+
+`--draft` rend en 540 × 960 à 15 fps : **2,7 fois plus rapide et 19 fois plus
+léger** qu'un rendu final. On n'y juge pas la qualité d'image, on y juge le
+montage — le rythme, les coupes, la synchro des sous-titres. C'est ce qu'on
+regarde vingt fois avant le rendu final, qu'on ne lance qu'une seule.
+
+`--from` et `--to`, en secondes, ne rendent que le passage sur lequel on
+travaille. Les deux se combinent : 15 s de brouillon sortent en moins d'une
+minute.
+
+Un brouillon ou un extrait ne reçoit pas de `plan.json` archivé à côté : seul un
+rendu final complet est un livrable.
+
+### 10. Rendre
 
 ```bash
 npm run render -- vlog-lisbonne
@@ -169,6 +197,7 @@ fichier livré.
 
 | Commande | Rôle |
 |---|---|
+| `npm run doctor` | Vérifie que la machine peut faire tourner l'outil |
 | `npm run new -- <slug>` | Crée un projet |
 | `npm run ingest -- <slug>` | Analyse les rushes → `media.json` |
 | `npm run proxy -- <slug>` | Transcode les rushes lourds (4K, HEVC, HDR, 60 fps) |
@@ -178,16 +207,19 @@ fichier livré.
 | `npm run validate -- <slug>` | Vérifie le plan avant rendu |
 | `npm run render -- <slug>` | Rend en MP4 |
 | `npm run studio` | Ouvre le Studio Remotion |
+| `npm test` | Teste la logique de montage |
 | `npm run typecheck` | Vérifie le code TypeScript |
 
 Options utiles :
 
 ```bash
+npm run render -- <slug> --draft --from 20 --to 35
 npm run render -- <slug> --out C:/chemin/final.mp4 --crf 23 --concurrency 4
 npm run transcribe -- <slug> --model large-v3 --lang fr --audio media/voix.mp3
 npm run cuts -- <slug> --around 12.05 --min 0.3
 npm run proxy -- <slug> --force
 npm run sfx -- whoosh
+npm run doctor -- --full
 ```
 
 ---
@@ -227,6 +259,22 @@ La référence complète de chaque champ est dans [docs/PLAN.md](docs/PLAN.md).
 | [docs/DEPANNAGE.md](docs/DEPANNAGE.md) | Chaque erreur rencontrée et sa correction |
 | [CLAUDE.md](CLAUDE.md) | Les règles permanentes du projet |
 | [src/schema.ts](src/schema.ts) | La grammaire du plan, qui fait autorité |
+
+---
+
+## Distribuer l'outil
+
+Le dépôt ne contient que du texte : 43 fichiers, 420 Ko. `.gitignore` exclut les
+rushes, les exports, la clé API et **le contenu de la bibliothèque partagée**.
+
+Ce dernier point est volontaire. Les bruitages, musiques et logos viennent de
+banques tierces dont les licences varient : certaines interdisent la
+redistribution du fichier lui-même, même quand son usage dans une vidéo est
+autorisé. Voir [projects/_library/LICENCES.md](projects/_library/LICENCES.md),
+à remplir avant toute distribution.
+
+Le plus simple reste de livrer sans les fichiers : l'acheteur apporte sa banque,
+et `npm run doctor` lui signale qu'elle est vide.
 
 ---
 

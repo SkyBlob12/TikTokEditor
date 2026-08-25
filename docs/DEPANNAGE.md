@@ -1,5 +1,14 @@
 # Dépannage
 
+**Premier réflexe :**
+
+```bash
+npm run doctor
+```
+
+Il contrôle les prérequis et annonce chaque problème avec sa correction.
+`npm run doctor -- --full` ajoute un rendu de bout en bout.
+
 ---
 
 ## Installation
@@ -48,7 +57,21 @@ porté à 120 s dans `remotion.config.ts`, mais le proxy reste le vrai remède.
 `trim + duration × speed` dépasse la durée du fichier. La validation donne la
 durée maximale possible pour ce clip.
 
+### Un rendu échoue puis réussit à l'identique
+
+Vu deux fois : un rendu lancé juste après un autre peut échouer au démarrage du
+navigateur. Relancer suffit. Éviter d'enchaîner deux rendus en parallèle.
+
 ### Le rendu est lent
+
+Pour itérer, ne rends pas en pleine qualité :
+
+```bash
+npm run render -- mon-projet --draft                  2,7x plus rapide
+npm run render -- mon-projet --draft --from 20 --to 35
+```
+
+Pour le rendu final :
 
 ```bash
 npm run render -- mon-projet --concurrency 4
