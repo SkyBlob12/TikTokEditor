@@ -21,6 +21,7 @@ le montage automatisable.
 | Chemin | Contenu |
 |---|---|
 | `projects/<slug>/brief.md` | L'intention : hook, promesse, contraintes |
+| `projects/<slug>/script.md` | Le texte à dire et les plans à filmer, avant tournage |
 | `projects/<slug>/media/` | Les rushes originaux, **jamais modifiés** |
 | `projects/<slug>/media/proxy/` | Versions allégées (`npm run proxy`) |
 | `projects/<slug>/media.json` | Généré par `npm run ingest` : durées réelles |
@@ -36,6 +37,17 @@ le montage automatisable.
 
 Dans un plan, un chemin qui commence par `library/` pointe sur
 `projects/_library/`. Tout le reste est relatif au dossier du projet.
+
+## Pour écrire un script, quand il n'y a pas encore d'idée
+
+Donne un thème et des axes, et le script s'écrit tout seul : suis la skill
+[tiktok-script](.claude/skills/tiktok-script/SKILL.md). Elle propose **trois
+angles**, tu en choisis un, elle écrit `projects/<slug>/script.md` : le texte à
+dire bloc par bloc, et le plan à filmer en face de chacun. La grammaire du
+fichier est dans [docs/SCRIPT.md](docs/SCRIPT.md).
+
+`npm run script -- <slug>` compte les mots et dit lesquels ne tiendront pas dans
+le temps annoncé. C'est le `validate` de l'étape d'écriture.
 
 ## Pour monter une vidéo
 
@@ -62,6 +74,10 @@ valide n'est pas un montage.
 **Vérifie le contenu d'un bloc en le transcrivant isolément**, plutôt que de le
 déduire des timings.
 
+**N'invente jamais un chiffre dans un script.** Un prix, une date, une
+statistique que je n'ai pas donnée s'écrit `[à compléter : ...]` et se signale.
+Un chiffre inventé finit incrusté à l'écran et dit face caméra.
+
 **Un nouveau style visuel se code dans `src/components/`, pas dans le plan.** Le
 plan décrit *quoi*, les composants décrivent *comment*. Si une demande ne peut
 pas s'exprimer dans le schéma actuel, étends `src/schema.ts` et le composant
@@ -69,6 +85,24 @@ concerné, puis documente le champ dans `docs/PLAN.md`.
 
 **Le format est figé : 1080 × 1920, 30 fps, H.264.** Pas de variante sans
 demande explicite.
+
+**Tout texte reste dans la zone sûre**, que l'interface TikTok recouvre : 130 px
+en haut, 320 px en bas, 60 px à gauche, 120 px à droite (la colonne de boutons).
+Le rendu y ramène ce qui dépasse et `npm run validate` le signale, mais un
+avertissement veut dire que le plan ment sur ce qu'on verra : la valeur se
+corrige dans le plan. Pour voir les repères :
+`npm run studio -- --props='{"project":"<slug>","safeZoneGuide":true}'`.
+
+**Pas de barre de progression.** `progressBar` reste absent des plans : je n'en
+veux pas sur mes vidéos.
+
+**Une image incrustée ne recouvre jamais le visage.** Affiche, capture, trace
+Strava : elle se pose au-dessus de la tête (sur un plan face caméra, `y` entre
+0.08 et 0.31 environ) ou sur le côté, quitte à réduire sa largeur. Elle peut
+mordre sur les cheveux, pas sur les yeux ni la bouche. Se vérifie sur un
+`npx remotion still` avant le rendu. Une image détourée (fond transparent, comme
+une trace Strava) se pose telle quelle, sans `background` : sur une carte
+blanche, la trace ne se voit plus.
 
 **Pas de tiret cadratin** (,), ni dans les textes incrustés ni dans les fichiers
 écrits. Convention de ce dépôt : une virgule, un point ou deux-points font le

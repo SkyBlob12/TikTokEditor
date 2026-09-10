@@ -80,6 +80,52 @@ export const paginate = (
   });
 };
 
+const PONCTUATION_FINALE = /[.,!?;:…]+$/u;
+const nu = (texte: string) => texte.trim().replace(PONCTUATION_FINALE, '').toLowerCase();
+
+/**
+ * Applique les corrections de lexique du plan (`captions.replace`).
+ *
+ * Une cle en plusieurs mots ("on boarding") fusionne les mots consecutifs
+ * correspondants en un seul : un modele de transcription coupe regulierement un
+ * mot compose, et il n'existe alors aucun mot unique a corriger. La comparaison
+ * ignore la casse et la ponctuation, mais la ponctuation finale est conservee :
+ * c'est elle qui dit a paginate ou se termine une phrase.
+ */
+export const applyReplacements = (
+  words: TimedWord[],
+  replace: Record<string, string> | undefined,
+): TimedWord[] => {
+  if (!replace) return words;
+
+  // Les cles les plus longues d'abord : "on boarding" avant "boarding".
+  const entries = Object.entries(replace)
+    .map(([cle, valeur]) => ({tokens: cle.trim().split(/\s+/).map(nu), valeur}))
+    .filter((e) => e.tokens.length > 0 && e.tokens[0] !== '')
+    .sort((a, b) => b.tokens.length - a.tokens.length);
+
+  const out: TimedWord[] = [];
+  for (let i = 0; i < words.length; i += 1) {
+    const match = entries.find((e) =>
+      e.tokens.every((token, j) => words[i + j] && nu(words[i + j].text) === token),
+    );
+    if (!match) {
+      out.push(words[i]);
+      continue;
+    }
+    const dernier = words[i + match.tokens.length - 1];
+    const finale = dernier.text.trim().match(PONCTUATION_FINALE)?.[0] ?? '';
+    out.push({
+      ...words[i],
+      text: match.valeur + finale,
+      endMs: dernier.endMs,
+      timestampMs: dernier.timestampMs,
+    });
+    i += match.tokens.length - 1;
+  }
+  return out;
+};
+
 /**
  * Replace les mots de la transcription sur la timeline du montage.
  *
@@ -104,12 +150,17 @@ export const remapWords = (
 ): TimedWord[] | null => {
   if (!syncTo) return null;
 
-  const windows = clips.filter((clip) => clip.src === syncTo);
+  // On garde l'index du clip DANS LE PLAN, pas dans les extraits filtres :
+  // c'est lui qui empeche une page de sous-titres d'enjamber une coupe, y
+  // compris quand deux prises differentes se suivent.
+  const windows = clips
+    .map((clip, index) => ({clip, index}))
+    .filter(({clip}) => clip.src === syncTo);
   if (!windows.length) return null;
 
   const out: TimedWord[] = [];
 
-  for (const [index, clip] of windows.entries()) {
+  for (const {clip, index} of windows) {
     const sourceStart = clip.trim * 1000;
     const sourceEnd = (clip.trim + clip.duration * clip.speed) * 1000;
     const timelineStart = clip.start * 1000;

@@ -18,6 +18,8 @@ import {execFileAsync, flag, kindOf, projectDir, readJson, requireSlug, writeJso
 const slug = requireSlug('npm run transcribe -- <slug> [--openai|--srt fichier.srt]');
 const dir = projectDir(slug);
 
+/** Ou ecrire la transcription. Une par prise quand un montage en melange plusieurs. */
+const OUT = String(flag('out', 'captions.json'));
 const MODEL = String(flag('model', 'medium'));
 const LANG = String(flag('lang', 'fr'));
 const WHISPER_VERSION = String(flag('whisper-version', '1.5.5'));
@@ -44,7 +46,7 @@ const resolveAudio = () => {
 };
 
 const save = (captions) => {
-  writeJson(path.join(dir, 'captions.json'), {
+  writeJson(path.join(dir, OUT), {
     project: slug,
     language: LANG,
     generatedAt: new Date().toISOString(),
@@ -53,7 +55,7 @@ const save = (captions) => {
   const seconds = captions.length ? Math.round(captions[captions.length - 1].endMs / 1000) : 0;
   console.log('');
   console.log(`${captions.length} mots, ${seconds}s.`);
-  console.log(`Ecrit : projects/${slug}/captions.json`);
+  console.log(`Ecrit : projects/${slug}/${OUT}`);
 };
 
 // --- Source 1 : import d'un .srt -------------------------------------------

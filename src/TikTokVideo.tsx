@@ -9,6 +9,7 @@ import {AudioTrack} from './components/AudioTrack';
 import {ProgressBar} from './components/ProgressBar';
 import {EffectLayer, EffectOverlay} from './components/Effects';
 import {SfxTrack} from './components/SfxTrack';
+import {SafeZoneGuide} from './components/SafeZoneGuide';
 
 export type TikTokVideoProps = {
   /** Nom du dossier dans projects/ */
@@ -16,6 +17,11 @@ export type TikTokVideoProps = {
   /** Injecte par calculateMetadata. */
   plan?: Plan | null;
   words?: Word[];
+  /**
+   * Une transcription par prise, quand la voix vient de plusieurs rushes.
+   * Injecte par calculateMetadata a partir de `plan.captions.sources`.
+   */
+  wordSets?: {syncTo: string; words: Word[]}[];
   /**
    * Cadence de rendu forcee, pour les brouillons.
    *
@@ -25,9 +31,20 @@ export type TikTokVideoProps = {
    * l'extraction des frames du rush, pas par l'encodage.
    */
   fpsOverride?: number | null;
+  /**
+   * Affiche les reperes de la zone sure TikTok. Pour le Studio uniquement :
+   * ne jamais laisser a `true` dans un rendu livre.
+   */
+  safeZoneGuide?: boolean;
 };
 
-export const TikTokVideo: React.FC<TikTokVideoProps> = ({project, plan, words = []}) => {
+export const TikTokVideo: React.FC<TikTokVideoProps> = ({
+  project,
+  plan,
+  words = [],
+  wordSets = [],
+  safeZoneGuide = false,
+}) => {
   if (!plan) {
     return (
       <AbsoluteFill
@@ -48,9 +65,15 @@ export const TikTokVideo: React.FC<TikTokVideoProps> = ({project, plan, words = 
     );
   }
 
-  // Les timings de captions.json sont ceux du fichier source. Si ce fichier est
-  // remonte, on les replace sur la timeline finale — sinon on les garde tels quels.
-  const timedWords = remapWords(words, plan.clips, plan.captions?.syncTo) ?? words;
+  // Les timings d'une transcription sont ceux de son fichier source. Si ce
+  // fichier est remonte, on les replace sur la timeline finale, sinon on les
+  // garde tels quels. Avec plusieurs prises, chaque transcription est recalee
+  // sur les extraits de SON rush, puis tout est refondu en une seule liste.
+  const timedWords = wordSets.length
+    ? wordSets
+        .flatMap((set) => remapWords(set.words, plan.clips, set.syncTo) ?? [])
+        .sort((a, b) => a.startMs - b.startMs)
+    : (remapWords(words, plan.clips, plan.captions?.syncTo) ?? words);
 
   return (
     <AbsoluteFill style={{backgroundColor: plan.background}}>
@@ -58,13 +81,20 @@ export const TikTokVideo: React.FC<TikTokVideoProps> = ({project, plan, words = 
         <ClipTrack clips={plan.clips} project={project} />
       </EffectLayer>
       <EffectOverlay effects={plan.effects} />
-      {plan.captions ? <Captions words={timedWords} config={plan.captions} /> : null}
-      <Overlays overlays={plan.overlays} project={project} />
+      {plan.captions ? (
+        <Captions words={timedWords} config={plan.captions} safeZone={plan.safeZone} />
+      ) : null}
+      <Overlays overlays={plan.overlays} project={project} safeZone={plan.safeZone} />
       {plan.progressBar?.enabled ? (
-        <ProgressBar color={plan.progressBar.color} height={plan.progressBar.height} />
+        <ProgressBar
+          color={plan.progressBar.color}
+          height={plan.progressBar.height}
+          safeZone={plan.safeZone}
+        />
       ) : null}
       {plan.audio ? <AudioTrack audio={plan.audio} project={project} words={timedWords} /> : null}
       <SfxTrack sfx={plan.sfx} project={project} />
+      {safeZoneGuide ? <SafeZoneGuide safeZone={plan.safeZone} /> : null}
     </AbsoluteFill>
   );
 };

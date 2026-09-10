@@ -14,7 +14,12 @@ import {z} from 'zod';
 export const positionSchema = z.object({
   /** 0 = bord gauche, 1 = bord droit. 0.5 = centre. */
   x: z.number().min(-0.5).max(1.5).default(0.5),
-  /** 0 = haut, 1 = bas. TikTok : garder entre 0.12 et 0.80 (UI par-dessus). */
+  /**
+   * 0 = haut, 1 = bas.
+   *
+   * L'element est de toute facon ramene dans la zone sure au rendu (voir
+   * `safeZone`) : viser entre 0.15 et 0.78 evite qu'il soit deplace.
+   */
   y: z.number().min(-0.5).max(1.5).default(0.5),
 });
 
@@ -136,7 +141,12 @@ export const captionsSchema = z.object({
   style: z.enum(['karaoke', 'boxed', 'clean', 'punch']).default('karaoke'),
   font: z.enum(['montserrat', 'anton', 'bebas']).default('montserrat'),
   fontSize: z.number().min(20).max(200).default(74),
-  /** Position verticale, 0 = haut, 1 = bas. 0.72 = zone sure TikTok. */
+  /**
+   * Position de la DERNIERE ligne, 0 = haut, 1 = bas. 0.72 par defaut.
+   *
+   * Le bloc est ancre par le bas : une deuxieme ligne monte au lieu de
+   * descendre, et le bord bas ne passe jamais sous la zone sure.
+   */
   y: z.number().min(0).max(1).default(0.72),
   color: z.string().default('#FFFFFF'),
   /** Couleur du mot en cours (styles karaoke / punch). */
@@ -157,6 +167,25 @@ export const captionsSchema = z.object({
    * Laisser vide quand la voix est un fichier audio joue en entier.
    */
   syncTo: z.string().optional(),
+  /**
+   * Une transcription par prise, quand la voix vient de plusieurs rushes.
+   *
+   * `syncTo` ne designe qu'un fichier. Des qu'un montage enchaine des extraits
+   * de rushes differents (plusieurs prises face camera), chaque rush a sa
+   * propre transcription, avec ses propres timings : il n'y a pas de timeline
+   * commune a recaler. On les declare ici, et chaque groupe de mots est replace
+   * sur les extraits de SON fichier.
+   *
+   * Renseigner `sources` remplace `file` et `syncTo`.
+   *
+   *   "sources": [
+   *     {"file": "captions/prise-1.json", "syncTo": "media/proxy/prise-1.mp4"},
+   *     {"file": "captions/prise-2.json", "syncTo": "media/proxy/prise-2.mp4"}
+   *   ]
+   */
+  sources: z
+    .array(z.object({file: z.string(), syncTo: z.string()}))
+    .optional(),
   /**
    * Corrections de transcription, appliquees au rendu.
    *
@@ -181,6 +210,23 @@ export const audioSchema = z.object({
   duck: z.boolean().default(true),
 });
 
+/**
+ * Les marges que l'interface TikTok recouvre, en pixels sur une base
+ * 1080 x 1920. Sous-titres et overlays sont maintenus a l'interieur au rendu.
+ *
+ * A ne toucher que pour une autre plateforme : Reels et Shorts ont une colonne
+ * de boutons plus etroite et une legende plus haute.
+ */
+export const safeZoneSchema = z.object({
+  /** Barre « Abonnements | Pour toi ». */
+  top: z.number().min(0).max(800).default(130),
+  /** Legende, nom de compte, titre du son. */
+  bottom: z.number().min(0).max(1200).default(320),
+  left: z.number().min(0).max(500).default(60),
+  /** Colonne like / commentaire / partage. */
+  right: z.number().min(0).max(500).default(120),
+});
+
 export const planSchema = z.object({
   title: z.string().default('Sans titre'),
   fps: z.number().min(1).max(120).default(30),
@@ -197,6 +243,8 @@ export const planSchema = z.object({
   sfx: z.array(sfxSchema).default([]),
   captions: captionsSchema.optional(),
   audio: audioSchema.optional(),
+  /** Marges recouvertes par l'interface. Valeurs TikTok par defaut. */
+  safeZone: safeZoneSchema.default({top: 130, bottom: 320, left: 60, right: 120}),
   /** Barre de progression fine en bas de l'ecran (retention). */
   progressBar: z
     .object({
@@ -212,6 +260,7 @@ export type Clip = z.infer<typeof clipSchema>;
 export type Overlay = z.infer<typeof overlaySchema>;
 export type CaptionsConfig = z.infer<typeof captionsSchema>;
 export type AudioConfig = z.infer<typeof audioSchema>;
+export type SafeZone = z.infer<typeof safeZoneSchema>;
 export type Transition = z.infer<typeof transitionSchema>;
 export type Effect = z.infer<typeof effectSchema>;
 export type Sfx = z.infer<typeof sfxSchema>;

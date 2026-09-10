@@ -53,6 +53,13 @@ ou sont les phrases, donc ou couper.
 
 ### 3. Ecrire le plan
 
+S'il existe un `projects/<slug>/script.md` (ecrit par la skill
+[tiktok-script](../tiktok-script/SKILL.md) avant le tournage), lis-le d'abord :
+ses lignes `TEXTE` sont les overlays voulus, ses bornes de blocs donnent le
+rythme vise, et ses lignes `DIRE` disent ce que la transcription devrait
+contenir, donc comment orthographier les noms propres. Ce sont des intentions,
+pas des timings : les vraies bornes viennent de `npm run cuts`.
+
 Ecris `projects/<slug>/plan.json`. La grammaire complete et commentee est dans
 [docs/PLAN.md](../../../docs/PLAN.md), et le schema qui fait autorite dans
 [src/schema.ts](../../../src/schema.ts).
@@ -141,7 +148,8 @@ Sort dans `exports/<slug>.mp4`.
 
 Avant un rendu long, controle la mise en page sur quelques images fixes :
 `npx remotion still TikTok sortie.png --frame=<n> --props='{"project":"<slug>"}'`.
-Quelques secondes au lieu de plusieurs minutes.
+Quelques secondes au lieu de plusieurs minutes. Ajoute `"safeZoneGuide":true`
+aux props pour voir ou l'interface TikTok mord sur l'image.
 
 ---
 
@@ -166,8 +174,14 @@ plan se lit comme un bug.
 **Pas de trou noir.** `clips[n].start + duration` doit egaler
 `clips[n+1].start`. La validation le signale.
 
-**Zone sure verticale : y entre 0.12 et 0.80.** En dessous de 0.80, la legende
-et les boutons TikTok recouvrent tout. Les sous-titres vivent a `y: 0.72`.
+**Zone sure verticale : y entre 0.15 et 0.78.** Plus bas, la legende et les
+boutons TikTok recouvrent tout. Les sous-titres vivent a `y: 0.72`.
+
+Le rendu ramene dans la zone sure ce qui en sort, et `npm run validate` le
+signale. Un avertissement « sort de la zone sure » n'est pas cosmetique : il dit
+que le plan et l'image ne disent plus la meme chose. Tu corriges la valeur dans
+le plan, tu ne comptes pas sur le rattrapage. Les marges sont dans
+`plan.safeZone`, a ne changer que pour une autre plateforme.
 
 **Trois mots de sous-titre a la fois**, pas plus (`wordsPerPage: 3`). Au-dela on
 lit au lieu de regarder.
@@ -224,7 +238,7 @@ Chacun de ces trois elements doit avoir une raison d'etre la. Un effet pose
 - Tu ne changes pas le format : toujours 1080x1920, 30 fps.
 - Tu n'ajoutes pas d'emoji dans les sous-titres burn-in.
 - Tu n'ecris pas de tiret cadratin, ni dans un texte incruste ni ailleurs.
-- Tu ne mets pas de texte sous `y: 0.82`.
+- Tu ne mets pas de texte sous `y: 0.78`.
 - Tu ne livres pas un rendu sans avoir lance `npm run validate`.
 - Tu ne modifies pas les fichiers de `media/` : ce sont les rushes originaux.
 

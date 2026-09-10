@@ -1,19 +1,24 @@
 import React from 'react';
 import {AbsoluteFill, Easing, Img, Sequence, interpolate, useCurrentFrame, useVideoConfig} from 'remotion';
-import type {Overlay} from '../schema';
+import type {Overlay, SafeZone} from '../schema';
 import {FONTS, type FontName} from '../lib/fonts';
 import {asset} from '../lib/project';
 import {animateIn, animateOut, combine} from '../lib/animations';
+import {clampCenterY, estimateLines, insetsOf, maxWidthAt} from '../lib/safeZone';
+
+const LINE_HEIGHT = 1.12;
 
 type Preset = {
   fontSize: number;
   color: string;
   background?: string;
   font: FontName;
-  padding: string;
+  /** Marges internes, en px : [vertical, horizontal]. */
+  padding: [number, number];
   borderRadius: number;
   stroke: number;
-  maxWidth: string;
+  /** Largeur maximale voulue, en fraction de l'ecran. Bornee par la zone sure. */
+  maxWidth: number;
 };
 
 const PRESETS: Record<Overlay['preset'], Preset> = {
@@ -21,49 +26,49 @@ const PRESETS: Record<Overlay['preset'], Preset> = {
     fontSize: 96,
     color: '#FFFFFF',
     font: 'montserrat',
-    padding: '0',
+    padding: [0, 0],
     borderRadius: 0,
     stroke: 12,
-    maxWidth: '86%',
+    maxWidth: 0.86,
   },
   cta: {
     fontSize: 62,
     color: '#000000',
     background: '#FFFFFF',
     font: 'montserrat',
-    padding: '22px 44px',
+    padding: [22, 44],
     borderRadius: 999,
     stroke: 0,
-    maxWidth: '82%',
+    maxWidth: 0.82,
   },
   sticker: {
     fontSize: 46,
     color: '#000000',
     background: '#FFE100',
     font: 'montserrat',
-    padding: '14px 28px',
+    padding: [14, 28],
     borderRadius: 16,
     stroke: 0,
-    maxWidth: '70%',
+    maxWidth: 0.7,
   },
   label: {
     fontSize: 40,
     color: '#FFFFFF',
     background: 'rgba(0,0,0,0.55)',
     font: 'montserrat',
-    padding: '12px 24px',
+    padding: [12, 24],
     borderRadius: 12,
     stroke: 0,
-    maxWidth: '70%',
+    maxWidth: 0.7,
   },
   plain: {
     fontSize: 58,
     color: '#FFFFFF',
     font: 'montserrat',
-    padding: '0',
+    padding: [0, 0],
     borderRadius: 0,
     stroke: 0,
-    maxWidth: '84%',
+    maxWidth: 0.84,
   },
 };
 
@@ -71,9 +76,10 @@ const OverlayItem: React.FC<{
   overlay: Overlay;
   project: string;
   durationInFrames: number;
-}> = ({overlay, project, durationInFrames}) => {
+  safeZone: SafeZone;
+}> = ({overlay, project, durationInFrames, safeZone}) => {
   const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const {fps, width, height} = useVideoConfig();
   const preset = PRESETS[overlay.preset];
 
   const anim = combine(
@@ -106,10 +112,40 @@ const OverlayItem: React.FC<{
         ).toLocaleString('fr-FR')}${overlay.suffix}`
       : overlay.text;
 
+  /**
+   * La zone sure borne l'overlay avant tout le reste.
+   *
+   * `maxWidth` se calcule depuis le centre du bloc : un texte pose a `x: 0.5`
+   * ne peut pas depasser 840 px sans passer sous la colonne de boutons. Le
+   * centre vertical, lui, est ramene dans la zone : un bloc pose trop bas
+   * remonte, au lieu de disparaitre sous la legende.
+   */
+  const insets = insetsOf(safeZone, width, height);
+  const [paddingY, paddingX] = preset.padding;
+  const centerX = overlay.position.x * width;
+  const maxWidth = Math.min(preset.maxWidth * width, maxWidthAt(centerX, insets, width));
+
+  const halfHeight =
+    overlay.type === 'image'
+      ? 0
+      : (estimateLines(
+          String(contenu),
+          fontSize,
+          Math.max(1, maxWidth - paddingX * 2),
+          overlay.preset === 'hook',
+        ) *
+          fontSize *
+          LINE_HEIGHT) /
+          2 +
+        paddingY +
+        stroke;
+
+  const centerY = clampCenterY(overlay.position.y * height, halfHeight, insets, height);
+
   const wrapper: React.CSSProperties = {
     position: 'absolute',
-    left: `${overlay.position.x * 100}%`,
-    top: `${overlay.position.y * 100}%`,
+    left: centerX,
+    top: centerY,
     transform: [
       'translate(-50%, -50%)',
       overlay.rotate ? `rotate(${overlay.rotate}deg)` : '',
@@ -119,7 +155,7 @@ const OverlayItem: React.FC<{
       .join(' '),
     opacity: anim.opacity,
     filter: anim.filter,
-    maxWidth: preset.maxWidth,
+    maxWidth,
   };
 
   if (overlay.type === 'image' && overlay.src) {
@@ -135,13 +171,20 @@ const OverlayItem: React.FC<{
         }
       : {};
 
+    // La hauteur d'une image n'est connue qu'au chargement : plutot que de la
+    // deviner, on la borne. Une image trop haute pour la zone sure retrecit,
+    // `contain` gardant ses proportions.
+    const maxHeight = Math.max(
+      0,
+      2 * Math.min(centerY - insets.top, height - insets.bottom - centerY),
+    );
+
     return (
       <AbsoluteFill>
         <div
           style={{
             ...wrapper,
-            width: `${overlay.width * 100}%`,
-            maxWidth: 'none',
+            width: Math.min(overlay.width * width, maxWidth),
             ...card,
           }}
         >
@@ -150,6 +193,8 @@ const OverlayItem: React.FC<{
             style={{
               width: '100%',
               height: 'auto',
+              maxHeight,
+              objectFit: 'contain',
               display: 'block',
               filter: overlay.background
                 ? undefined
@@ -173,7 +218,7 @@ const OverlayItem: React.FC<{
           textTransform: overlay.preset === 'hook' ? 'uppercase' : 'none',
           color: overlay.color ?? preset.color,
           backgroundColor: overlay.background ?? preset.background,
-          padding: preset.padding,
+          padding: `${paddingY}px ${paddingX}px`,
           borderRadius: preset.borderRadius,
           whiteSpace: 'pre-wrap',
           ...(stroke
@@ -191,10 +236,11 @@ const OverlayItem: React.FC<{
   );
 };
 
-export const Overlays: React.FC<{overlays: Overlay[]; project: string}> = ({
-  overlays,
-  project,
-}) => {
+export const Overlays: React.FC<{
+  overlays: Overlay[];
+  project: string;
+  safeZone: SafeZone;
+}> = ({overlays, project, safeZone}) => {
   const {fps} = useVideoConfig();
 
   return (
@@ -209,7 +255,12 @@ export const Overlays: React.FC<{overlays: Overlay[]; project: string}> = ({
             name={`Overlay ${i + 1} — ${overlay.text ?? overlay.src ?? ''}`.slice(0, 40)}
             layout="none"
           >
-            <OverlayItem overlay={overlay} project={project} durationInFrames={durationInFrames} />
+            <OverlayItem
+              overlay={overlay}
+              project={project}
+              durationInFrames={durationInFrames}
+              safeZone={safeZone}
+            />
           </Sequence>
         );
       })}

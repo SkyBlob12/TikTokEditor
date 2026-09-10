@@ -12,6 +12,20 @@ export const EXPORTS_DIR = path.join(ROOT, 'exports');
 /** Assets partages entre projets : bruitages, musiques, logos. */
 export const LIBRARY_DIR = path.join(PROJECTS_DIR, '_library');
 
+/**
+ * Charge .env a la racine, s'il existe.
+ *
+ * La documentation dit de mettre OPENAI_API_KEY dans .env, mais les scripts
+ * lisent process.env : sans ce chargement, une cle presente dans le fichier
+ * reste invisible et la transcription --openai echoue en disant qu'elle est
+ * absente. Aucune dependance, process.loadEnvFile est natif.
+ */
+try {
+  process.loadEnvFile(path.join(ROOT, '.env'));
+} catch {
+  // Pas de .env, ou Node trop ancien : tout fonctionne sans, en local.
+}
+
 export const projectDir = (slug) => path.join(PROJECTS_DIR, slug);
 
 /**

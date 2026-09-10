@@ -122,8 +122,14 @@ comme une erreur.
 
 **Trois mots à la fois**, pas plus. Au-delà, on lit au lieu de regarder.
 
-**Zone sûre : `y` entre 0.12 et 0.80.** En dessous de 0.80, la légende et les
-boutons TikTok recouvrent tout. Les sous-titres vivent à `0.72`.
+**Zone sûre : `y` entre 0.15 et 0.78.** Plus bas, la légende et les boutons
+TikTok recouvrent tout. Les sous-titres vivent à `0.72`.
+
+Le rendu ramène de force ce qui sort de cette zone, et `npm run validate` le
+signale : un avertissement « sort de la zone sûre » veut dire que le plan et
+l'image ne disent plus la même chose, donc que la valeur est à corriger dans le
+plan. Pour voir les repères :
+`npm run studio -- --props='{"project":"<slug>","safeZoneGuide":true}'`.
 
 Une page de sous-titres **ne doit jamais enjamber une coupe**, le moteur s'en
 charge, à condition que `syncTo` soit renseigné.
@@ -155,6 +161,6 @@ peux garder » mais « qu'est-ce qui ne sert à rien ».
 
 - Changer le format : toujours 1080 × 1920, 30 fps.
 - Mettre des emoji dans les sous-titres incrustés.
-- Placer du texte sous `y: 0.82`.
+- Placer du texte sous `y: 0.78`.
 - Livrer un rendu sans avoir lancé `npm run validate`.
 - Modifier les fichiers de `media/` : ce sont les rushes originaux.

@@ -9,6 +9,7 @@
     "demo": "node scripts/demo.mjs",
     "studio": "remotion studio",
     "new": "node scripts/new-project.mjs",
+    "script": "node scripts/script.mjs",
     "ingest": "node scripts/ingest.mjs",
     "proxy": "node scripts/proxy.mjs",
     "transcribe": "node scripts/transcribe.mjs",

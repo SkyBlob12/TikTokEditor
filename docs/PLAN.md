@@ -32,7 +32,8 @@ champ et documente les valeurs acceptées.
   "sfx": [],
   "captions": {},
   "audio": {},
-  "progressBar": {}
+  "progressBar": {},
+  "safeZone": {}
 }
 ```
 
@@ -112,8 +113,10 @@ trois transitions animées maximum sur une vidéo d'une minute.
 | `cta` | appel à l'action, pastille blanche | 0.31 |
 | `plain` | texte libre | libre |
 
-`position` est en fraction d'écran : `0.5` = centre. **Reste entre 0.12 et
-0.80 en vertical** : au-delà, l'interface TikTok recouvre tout.
+`position` est en fraction d'écran : `0.5` = centre. **Reste entre 0.15 et
+0.78 en vertical** : au-delà, l'interface TikTok recouvre le texte, et le rendu
+ramène le bloc dans la [zone sûre](#safezone--les-marges-de-linterface). La
+validation signale chaque overlay déplacé.
 
 ### Image
 
@@ -257,9 +260,47 @@ contient, donc un segment rejoué en hook voit ses sous-titres joués deux fois.
 
 À laisser vide quand la voix est un `audio.voice` joué en entier.
 
+**`sources` remplace `file` et `syncTo` quand la voix vient de plusieurs
+prises.** Un montage face caméra enchaîne souvent des extraits de rushes
+différents : chacun a sa transcription, avec ses propres timings, et il n'existe
+aucune timeline commune à recaler. On les déclare une par une, et chaque groupe
+de mots est reprojeté sur les extraits de *son* fichier.
+
+```json
+"captions": {
+  "sources": [
+    {"file": "captions/prise-1.json", "syncTo": "media/proxy/prise-1.mp4"},
+    {"file": "captions/prise-2.json", "syncTo": "media/proxy/prise-2.mp4"}
+  ]
+}
+```
+
+Une transcription par prise s'obtient avec l'option `--out` :
+
+```bash
+npm run transcribe -- <slug> --openai --audio media/proxy/prise-1.mp4 --out captions/prise-1.json
+```
+
+`npm run validate` signale un rush dont on entend la voix mais qui n'a pas de
+transcription déclarée : ses extraits passeraient sans sous-titres.
+
 **`replace`** corrige les noms propres écrits au son par le modèle de
 transcription. La correction s'applique au rendu, donc elle survit à une
 re-transcription. La comparaison ignore la casse et la ponctuation.
+
+Une clé en **plusieurs mots** fusionne les mots consécutifs correspondants en un
+seul. C'est le seul moyen de réparer un mot composé que le modèle a coupé en
+deux, cas fréquent sur le vocabulaire technique :
+
+```json
+"replace": {"on boarding": "onboarding", "Odissey": "Odyssa"}
+```
+
+**`y` positionne la dernière ligne, pas le centre du bloc.** Les sous-titres
+sont ancrés par le bas : une page qui passe sur deux lignes monte, au lieu de
+descendre sous la légende TikTok. Ce bord bas ne franchit jamais la
+[zone sûre](#safezone--les-marges-de-linterface), quelle que soit la valeur
+écrite ici.
 
 ---
 
@@ -293,5 +334,40 @@ sur les timings de `captions.json`.
 {"enabled": true, "color": "#FFFFFF", "height": 6}
 ```
 
-Barre fine en bas de l'écran qui se remplit sur la durée. Signal de rétention :
-le spectateur voit qu'il approche de la fin.
+Barre fine qui se remplit sur la durée. Signal de rétention : le spectateur
+voit qu'il approche de la fin.
+
+Elle se pose sur le bord bas de la zone sûre, pas sur le bord de l'image : tout
+en bas, la barre de navigation de l'application la recouvre entièrement.
+
+---
+
+## `safeZone` : les marges de l'interface
+
+```json
+{"top": 130, "bottom": 320, "left": 60, "right": 120}
+```
+
+TikTok pose son interface **par-dessus** la vidéo : la barre
+« Abonnements | Pour toi » en haut, la colonne like / commentaire / partage à
+droite, la légende et le nom de compte en bas. Ce qui est rendu dessous existe
+dans le fichier mais reste invisible dans l'application.
+
+Ces marges sont en pixels, sur la base 1080 × 1920. Elles sont appliquées **au
+rendu** : sous-titres et overlays sont ramenés à l'intérieur, et leur largeur
+maximale en découle. Un bloc centré ne dépasse donc jamais 840 px de large
+(1080 moins deux fois 120, la marge de la colonne de boutons, prise des deux
+côtés pour que le texte reste centré).
+
+Ce champ n'existe que pour changer de plateforme, Reels et Shorts n'ayant pas
+les mêmes marges. Sur TikTok, on n'y touche pas.
+
+Pour voir ces repères sur un montage :
+
+```bash
+npm run studio -- --props='{"project":"mon-projet","safeZoneGuide":true}'
+```
+
+Le trait plein est la zone sûre, le pointillé la marge latérale réellement
+appliquée aux sous-titres. Ne jamais laisser `safeZoneGuide` à `true` dans un
+rendu livré.

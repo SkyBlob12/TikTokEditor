@@ -60,6 +60,8 @@ fs.writeFileSync(
 console.log(`Projet cree : projects/${slug}`);
 console.log('');
 console.log('Etapes suivantes :');
+console.log(`  0. Pas d'idee ? demande le script a Claude (theme + axes),`);
+console.log(`     puis : npm run script -- ${slug}`);
 console.log(`  1. Depose tes rushes dans projects/${slug}/media/`);
 console.log(`  2. npm run ingest -- ${slug}`);
 console.log(`  3. npm run proxy -- ${slug}          (si rush 4K / HEVC / HDR)`);

@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {kindOf, probe, projectDir, readJson, requireSlug, resolveAsset} from './_shared.mjs';
 import {planSchema} from '../src/schema.ts';
+import {clampBottom, clampCenterY, estimateLines, insetsOf, maxWidthAt} from '../src/lib/safeZone.ts';
 
 const slug = requireSlug('npm run validate -- <slug>');
 const dir = projectDir(slug);
@@ -39,6 +40,13 @@ if (!parsed.success) {
 }
 
 const plan = parsed.data;
+
+// Marges recouvertes par l'interface TikTok, en pixels de la composition.
+const insets = insetsOf(plan.safeZone, plan.width, plan.height);
+
+/** Taille de police effective d'un overlay, presets compris. */
+const TAILLES = {hook: 96, cta: 62, sticker: 46, label: 40, plain: 58};
+const tailleTexte = (overlay) => overlay.fontSize ?? TAILLES[overlay.preset];
 
 // --- Durees reelles des sources -------------------------------------------
 
@@ -142,11 +150,32 @@ for (const [i, overlay] of plan.overlays.entries()) {
   } else if (!overlay.text) {
     errors.push(`${label} : type "text" sans texte.`);
   }
-  if (overlay.position.y > 0.82) {
-    warnings.push(`${label} : y=${overlay.position.y} passe sous l'UI TikTok (legende, boutons). Reste <= 0.80.`);
+  // La zone sure est appliquee au rendu : ici on previent quand elle va
+  // deplacer quelque chose, pour que ce soit corrige dans le plan plutot que
+  // subi a l'export.
+  const largeur = maxWidthAt(overlay.position.x * plan.width, insets, plan.width);
+  if (largeur <= 0) {
+    warnings.push(
+      `${label} : x=${overlay.position.x} met le bloc entierement hors de la zone sure. ` +
+        `Garde x entre ${(insets.left / plan.width).toFixed(2)} et ` +
+        `${(1 - insets.right / plan.width).toFixed(2)}.`,
+    );
   }
-  if (overlay.position.y < 0.1) {
-    warnings.push(`${label} : y=${overlay.position.y} est masque par l'en-tete TikTok. Reste >= 0.12.`);
+
+  const demiHauteur =
+    overlay.type === 'image'
+      ? 0
+      : (estimateLines(String(overlay.text ?? ''), tailleTexte(overlay), Math.max(1, largeur)) *
+          tailleTexte(overlay) *
+          1.12) /
+        2;
+  const yRendu = clampCenterY(overlay.position.y * plan.height, demiHauteur, insets, plan.height) /
+    plan.height;
+  if (Math.abs(yRendu - overlay.position.y) > 0.005) {
+    warnings.push(
+      `${label} : y=${overlay.position.y} sort de la zone sure TikTok, le rendu le ramene a ` +
+        `${yRendu.toFixed(2)}. Corrige la valeur dans le plan.`,
+    );
   }
 }
 
@@ -162,36 +191,74 @@ if (plan.audio?.voice) checkFile(plan.audio.voice, 'audio.voice');
 if (plan.audio?.music) checkFile(plan.audio.music, 'audio.music');
 
 if (plan.captions?.enabled) {
-  const captionsPath = path.join(dir, plan.captions.file);
-  if (!fs.existsSync(captionsPath)) {
-    warnings.push(
-      `captions.enabled mais ${plan.captions.file} est absent — pas de sous-titres. ` +
-        `Lance : npm run transcribe -- ${slug}`,
-    );
-  } else {
-    const data = readJson(captionsPath);
-    const words = Array.isArray(data) ? data : (data.captions ?? []);
-    if (!words.length) warnings.push(`${plan.captions.file} ne contient aucun mot.`);
+  // Une seule transcription (file + syncTo), ou une par prise (sources) :
+  // le controle est le meme, on l'applique a chaque source declaree.
+  const sources = plan.captions.sources?.length
+    ? plan.captions.sources
+    : [{file: plan.captions.file, syncTo: plan.captions.syncTo}];
+
+  for (const source of sources) {
+    const captionsPath = path.join(dir, source.file);
+    if (!fs.existsSync(captionsPath)) {
+      warnings.push(
+        `captions.enabled mais ${source.file} est absent — pas de sous-titres. ` +
+          `Lance : npm run transcribe -- ${slug}`,
+      );
+    } else {
+      const data = readJson(captionsPath);
+      const words = Array.isArray(data) ? data : (data.captions ?? []);
+      if (!words.length) warnings.push(`${source.file} ne contient aucun mot.`);
+    }
+    if (source.syncTo && !plan.clips.some((c) => c.src === source.syncTo)) {
+      warnings.push(
+        `captions.syncTo pointe sur "${source.syncTo}", qui n'est utilise par aucun clip. ` +
+          'Les sous-titres garderont les timings du fichier source.',
+      );
+    }
   }
-  const syncTo = plan.captions.syncTo;
-  if (syncTo && !plan.clips.some((c) => c.src === syncTo)) {
-    warnings.push(
-      `captions.syncTo pointe sur "${syncTo}", qui n'est utilise par aucun clip. ` +
-        'Les sous-titres garderont les timings du fichier source.',
+
+  // Un rush dont on entend la voix mais qui n'a pas de transcription declaree
+  // passera sans sous-titres, et ca ne se voit qu'au rendu.
+  if (plan.captions.sources?.length) {
+    const declares = new Set(plan.captions.sources.map((s) => s.syncTo));
+    const parlants = new Set(
+      plan.clips.filter((c) => c.volume > 0 && kindOf(c.src) === 'video').map((c) => c.src),
     );
+    for (const src of parlants) {
+      if (!declares.has(src)) {
+        warnings.push(
+          `Aucune transcription pour "${src}", dont le son est audible : ces extraits ` +
+            'seront muets en sous-titres. Ajoute-le a captions.sources.',
+        );
+      }
+    }
   }
+
   // On ne previent que si la voix vient vraisemblablement des clips eux-memes,
   // c'est-a-dire s'ils ont du son. Sinon la transcription est independante du
   // remontage et n'a rien a recaler.
   const voixDansLesClips = plan.clips.some((c) => c.volume > 0);
-  if (!syncTo && voixDansLesClips && plan.clips.some((c) => c.trim > 0 || c.speed !== 1)) {
+  const recale = sources.some((s) => s.syncTo);
+  if (!recale && voixDansLesClips && plan.clips.some((c) => c.trim > 0 || c.speed !== 1)) {
     warnings.push(
       'Des clips sont coupes ou acceleres mais captions.syncTo est absent : les ' +
         'sous-titres suivront les timings du fichier source, donc seront desynchronises.',
     );
   }
-  if (plan.captions.y > 0.82) {
-    warnings.push(`captions.y=${plan.captions.y} passe sous l'UI TikTok. 0.68 - 0.75 est la zone sure.`);
+  const ligne = plan.captions.fontSize * 1.15;
+  const basRendu = clampBottom(
+    plan.captions.y * plan.height + ligne / 2,
+    ligne,
+    insets,
+    plan.height,
+  );
+  const yRendu = (basRendu - ligne / 2) / plan.height;
+  if (Math.abs(yRendu - plan.captions.y) > 0.005) {
+    warnings.push(
+      `captions.y=${plan.captions.y} passe sous la zone sure TikTok (legende, boutons), ` +
+        `le rendu remonte les sous-titres a ${yRendu.toFixed(2)} : ` +
+        `c'est le maximum a fontSize ${plan.captions.fontSize}.`,
+    );
   }
 }
 

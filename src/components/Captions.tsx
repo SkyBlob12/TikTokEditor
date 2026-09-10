@@ -1,12 +1,19 @@
 import React from 'react';
 import {AbsoluteFill, Sequence, spring, useCurrentFrame, useVideoConfig} from 'remotion';
-import type {CaptionsConfig} from '../schema';
+import type {CaptionsConfig, SafeZone} from '../schema';
 import {FONTS} from '../lib/fonts';
-import {paginate, type Page, type TimedWord} from '../lib/captions';
+import {applyReplacements, paginate, type Page, type TimedWord} from '../lib/captions';
+import {clampBottom, insetsOf, sideInset} from '../lib/safeZone';
 
-const CaptionPage: React.FC<{page: Page; config: CaptionsConfig}> = ({page, config}) => {
+const LINE_HEIGHT = 1.15;
+
+const CaptionPage: React.FC<{page: Page; config: CaptionsConfig; safeZone: SafeZone}> = ({
+  page,
+  config,
+  safeZone,
+}) => {
   const frame = useCurrentFrame();
-  const {fps} = useVideoConfig();
+  const {fps, width, height} = useVideoConfig();
   const font = FONTS[config.font];
 
   const timeMs = page.startMs + (frame / fps) * 1000;
@@ -18,7 +25,7 @@ const CaptionPage: React.FC<{page: Page; config: CaptionsConfig}> = ({page, conf
   const base: React.CSSProperties = {
     ...font,
     fontSize: config.fontSize,
-    lineHeight: 1.15,
+    lineHeight: LINE_HEIGHT,
     textAlign: 'center',
     textTransform: config.uppercase ? 'uppercase' : 'none',
     letterSpacing: config.style === 'clean' ? '0.01em' : '-0.01em',
@@ -31,85 +38,97 @@ const CaptionPage: React.FC<{page: Page; config: CaptionsConfig}> = ({page, conf
       : {textShadow: '0 4px 18px rgba(0,0,0,0.55)'}),
   };
 
+  /**
+   * Le bloc est ancre par son bord BAS, pas par son centre : une page qui passe
+   * sur deux lignes monte au lieu de descendre sous la legende TikTok. Le bord
+   * bas lui-meme est ramene dans la zone sure, ce qui est la seule facon de
+   * garantir qu'un sous-titre reste entierement lisible dans l'application.
+   */
+  const insets = insetsOf(safeZone, width, height);
+  const side = sideInset(insets);
+  const lineHeight = config.fontSize * LINE_HEIGHT;
+  const boxed = config.style === 'boxed';
+  const bottomPx = clampBottom(
+    config.y * height + lineHeight / 2 + (boxed ? 18 : 0),
+    lineHeight + (boxed ? 36 : 0),
+    insets,
+    height,
+  );
+
   return (
-    <AbsoluteFill
-      style={{
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        paddingLeft: 90,
-        paddingRight: 90,
-      }}
-    >
+    <AbsoluteFill>
       <div
         style={{
           position: 'absolute',
-          top: `${config.y * 100}%`,
-          transform: `translateY(-50%) scale(${0.94 + entry * 0.06})`,
-          width: '100%',
+          left: side,
+          right: side,
+          bottom: height - bottomPx,
           display: 'flex',
-          flexWrap: 'wrap',
           justifyContent: 'center',
-          gap: `${Math.round(config.fontSize * 0.14)}px ${Math.round(config.fontSize * 0.22)}px`,
-          ...(config.style === 'boxed'
-            ? {
-                backgroundColor: 'rgba(0,0,0,0.72)',
-                borderRadius: 22,
-                padding: '18px 26px',
-                width: 'auto',
-                maxWidth: '100%',
-              }
-            : {}),
         }}
       >
-        {page.tokens.map((token, i) => {
-          const active = timeMs >= token.fromMs && timeMs < token.toMs;
-          const highlighted = active && config.style !== 'clean';
+        <div
+          style={{
+            transform: `scale(${0.94 + entry * 0.06})`,
+            transformOrigin: 'center bottom',
+            maxWidth: '100%',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: `${Math.round(config.fontSize * 0.14)}px ${Math.round(config.fontSize * 0.22)}px`,
+            ...(boxed
+              ? {
+                  backgroundColor: 'rgba(0,0,0,0.72)',
+                  borderRadius: 22,
+                  padding: '18px 26px',
+                }
+              : {}),
+          }}
+        >
+          {page.tokens.map((token, i) => {
+            const active = timeMs >= token.fromMs && timeMs < token.toMs;
+            const highlighted = active && config.style !== 'clean';
 
-          return (
-            <span
-              key={`${token.text}-${i}`}
-              style={{
-                ...base,
-                display: 'inline-block',
-                color: highlighted ? config.highlight : config.color,
-                transform: highlighted && config.style === 'punch' ? 'scale(1.14)' : 'none',
-                ...(config.style === 'boxed' && active
-                  ? {
-                      backgroundColor: config.highlight,
-                      color: '#000000',
-                      borderRadius: 10,
-                      padding: '0 12px',
-                      textShadow: 'none',
-                    }
-                  : {}),
-              }}
-            >
-              {token.text}
-            </span>
-          );
-        })}
+            return (
+              <span
+                key={`${token.text}-${i}`}
+                style={{
+                  ...base,
+                  display: 'inline-block',
+                  color: highlighted ? config.highlight : config.color,
+                  transform: highlighted && config.style === 'punch' ? 'scale(1.14)' : 'none',
+                  ...(config.style === 'boxed' && active
+                    ? {
+                        backgroundColor: config.highlight,
+                        color: '#000000',
+                        borderRadius: 10,
+                        padding: '0 12px',
+                        textShadow: 'none',
+                      }
+                    : {}),
+                }}
+              >
+                {token.text}
+              </span>
+            );
+          })}
+        </div>
       </div>
     </AbsoluteFill>
   );
 };
 
-export const Captions: React.FC<{words: TimedWord[]; config: CaptionsConfig}> = ({words, config}) => {
+export const Captions: React.FC<{
+  words: TimedWord[];
+  config: CaptionsConfig;
+  safeZone: SafeZone;
+}> = ({words, config, safeZone}) => {
   const {fps} = useVideoConfig();
 
   if (!config.enabled || words.length === 0) return null;
 
   // Corrections de lexique avant tout decoupage en pages.
-  const corrected = config.replace
-    ? words.map((word) => {
-        const key = word.text.trim().replace(/[.,!?;:…]+$/u, '');
-        const match = Object.keys(config.replace ?? {}).find(
-          (k) => k.toLowerCase() === key.toLowerCase(),
-        );
-        return match
-          ? {...word, text: word.text.replace(key, config.replace![match])}
-          : word;
-      })
-    : words;
+  const corrected = applyReplacements(words, config.replace);
 
   const pages = paginate(corrected, {
     wordsPerPage: config.wordsPerPage,
@@ -132,7 +151,7 @@ export const Captions: React.FC<{words: TimedWord[]; config: CaptionsConfig}> = 
             name={`Sub ${i + 1} — ${page.tokens.map((t) => t.text).join(' ').slice(0, 24)}`}
             layout="none"
           >
-            <CaptionPage page={page} config={config} />
+            <CaptionPage page={page} config={config} safeZone={safeZone} />
           </Sequence>
         );
       })}

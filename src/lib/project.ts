@@ -51,6 +51,23 @@ export const loadWords = async (project: string, file: string): Promise<Word[]> 
   }
 };
 
+/**
+ * Charge une transcription par prise.
+ *
+ * Chaque groupe conserve son `syncTo` : c'est ce qui permet de recaler les
+ * sous-titres quand la voix vient de plusieurs rushes, chacun avec ses timings.
+ */
+export const loadWordSets = async (
+  project: string,
+  sources: {file: string; syncTo: string}[],
+): Promise<{syncTo: string; words: Word[]}[]> =>
+  Promise.all(
+    sources.map(async (source) => ({
+      syncTo: source.syncTo,
+      words: await loadWords(project, source.file),
+    })),
+  );
+
 /** Duree totale du montage, en frames, pour une cadence donnee. */
 export const planDurationInFrames = (plan: Plan, fps: number = plan.fps): number => {
   if (plan.duration) return Math.round(plan.duration * fps);

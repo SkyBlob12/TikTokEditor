@@ -6,8 +6,11 @@ Pas de timeline à la souris. Le montage est un document texte : il se génère,
 relit, se corrige d'une ligne, et se reproduit à l'identique.
 
 ```
-rushes → analyse → transcription → plan.json → validation → MP4
+script → rushes → analyse → transcription → plan.json → validation → MP4
 ```
+
+Le script aussi : sans idée de départ, un thème et deux ou trois axes suffisent
+à obtenir le texte à dire et la liste des plans à filmer.
 
 Format de sortie : **1080 × 1920, 30 fps, H.264**, prêt pour TikTok, Reels et
 Shorts.
@@ -106,6 +109,7 @@ TikTokEditor/
 │   │   └── brand/         logos
 │   └── mon-projet/
 │       ├── brief.md       ENTRÉE  ce que la vidéo doit faire
+│       ├── script.md      ENTRÉE  le texte à dire, les plans à filmer
 │       ├── media/         ENTRÉE  les rushes, jamais modifiés
 │       │   └── proxy/     généré  versions allégées
 │       ├── media.json     généré  durées et formats réels
@@ -140,6 +144,24 @@ dupliquée dans chaque projet.
 Le fil ci-dessous prend un exemple, `vlog-lisbonne`. Remplace-le par le nom de
 ton projet. Chaque commande est indépendante : tu peux en relancer une sans
 recommencer les précédentes.
+
+### 0. Pas d'idée ? Le script s'écrit avant les rushes
+
+Donne un thème et des axes à Claude : « écris-moi un script sur trois jours à
+Lisbonne à moins de 200 euros, axes transport, logement, où manger ». Il propose
+trois angles, tu en choisis un, et il écrit `projects/vlog-lisbonne/script.md` :
+le texte à dire bloc par bloc, et en face de chacun le plan à filmer.
+
+```bash
+npm run script -- vlog-lisbonne
+```
+
+Compte les mots, les convertit en secondes de parole et dit lesquels ne
+tiendront pas dans le temps annoncé, puis sort la liste des plans à tourner. Un
+bloc de 6 secondes ne contient pas 25 mots, et il vaut mieux l'apprendre avant
+d'allumer la caméra. Détail dans [docs/SCRIPT.md](docs/SCRIPT.md).
+
+Si tu as déjà tes rushes, saute cette étape.
 
 ### 1. Créer le projet
 
@@ -260,6 +282,7 @@ fichier livré.
 | `npm run doctor` | Vérifie que la machine peut faire tourner l'outil |
 | `npm run demo` | Génère un projet de démonstration complet |
 | `npm run new -- <slug>` | Crée un projet |
+| `npm run script -- <slug>` | Vérifie le script : durée de parole, plans à filmer |
 | `npm run ingest -- <slug>` | Analyse les rushes → `media.json` |
 | `npm run proxy -- <slug>` | Transcode les rushes lourds (4K, HEVC, HDR, 60 fps) |
 | `npm run transcribe -- <slug>` | Transcrit la voix → `captions.json` |
@@ -278,6 +301,7 @@ npm run render -- <slug> --draft --from 20 --to 35
 npm run render -- <slug> --out C:/chemin/final.mp4 --crf 23 --concurrency 4
 npm run transcribe -- <slug> --model large-v3 --lang fr --audio media/voix.mp3
 npm run cuts -- <slug> --around 12.05 --min 0.3
+npm run script -- <slug> --debit 2.6 --json
 npm run proxy -- <slug> --force
 npm run sfx -- whoosh
 npm run doctor -- --full
@@ -315,6 +339,7 @@ La référence complète de chaque champ est dans [docs/PLAN.md](docs/PLAN.md).
 
 | Document | Contenu |
 |---|---|
+| [docs/SCRIPT.md](docs/SCRIPT.md) | Le `script.md` : écrire ce qu'on va dire et filmer |
 | [docs/PLAN.md](docs/PLAN.md) | Référence complète du `plan.json`, champ par champ |
 | [docs/MONTAGE.md](docs/MONTAGE.md) | La méthode : où couper, quoi garder, quoi jeter |
 | [docs/DEPANNAGE.md](docs/DEPANNAGE.md) | Chaque erreur rencontrée et sa correction |
