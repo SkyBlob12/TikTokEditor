@@ -44,9 +44,14 @@ la resolution de livraison.
 ### 2. Les sous-titres, si la video parle
 
 ```bash
-npm run transcribe -- <slug>            # Whisper local, gratuit
-npm run transcribe -- <slug> --openai   # plus rapide, ~0,006 $/min
+npm run transcribe -- <slug> --openai   # ~0,006 $/min, la cle est dans .env
+npm run transcribe -- <slug> --openai --audio media/proxy/<nom>.mp4 --out captions/<nom>.json
 ```
+
+**Toujours `--openai`, jamais Whisper local** : consigne de l'utilisateur,
+Whisper local prend une vingtaine de minutes pour deux minutes de rushes. Une
+transcription par rush quand le montage en melange plusieurs. La verification
+d'un bloc isole passe aussi par `--openai`.
 
 Ca ecrit `captions.json`. Lis-le : c'est la verite du timing. Les mots te disent
 ou sont les phrases, donc ou couper.
@@ -141,10 +146,16 @@ masquee par l'UI TikTok) se corrigent aussi, sauf raison explicite.
 ### 5. Rendre
 
 ```bash
-npm run render -- <slug>
+npm run render -- <slug> --draft   # 540x960, 15 fps, quelques dizaines de secondes
+npm run render -- <slug>           # la version livrable
 ```
 
-Sort dans `exports/<slug>.mp4`.
+Sort dans `exports/<slug>.brouillon.mp4`, puis `exports/<slug>.mp4`.
+
+**Toute version intermediaire se rend en `--draft`.** On y juge le montage, pas
+l'image : rythme, coupes, synchro des sous-titres. Le rendu pleine resolution ne
+se lance qu'une fois, sur la version validee : en 60 fps il coute jusqu'a vingt
+minutes.
 
 Avant un rendu long, controle la mise en page sur quelques images fixes :
 `npx remotion still TikTok sortie.png --frame=<n> --props='{"project":"<slug>"}'`.
@@ -235,7 +246,8 @@ Chacun de ces trois elements doit avoir une raison d'etre la. Un effet pose
 
 ## Ce que tu ne fais pas
 
-- Tu ne changes pas le format : toujours 1080x1920, 30 fps.
+- Tu ne changes pas le format : toujours 1080x1920, 60 fps a l'export final,
+  meme quand les rushes sont en 30 fps.
 - Tu n'ajoutes pas d'emoji dans les sous-titres burn-in.
 - Tu n'ecris pas de tiret cadratin, ni dans un texte incruste ni ailleurs.
 - Tu ne mets pas de texte sous `y: 0.78`.

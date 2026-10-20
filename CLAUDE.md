@@ -64,12 +64,27 @@ première cause d'échec.
 transcription.** Elles sont contiguës et dérivent de plusieurs centaines de
 millisecondes. Toute borne de clip doit tomber dans un silence mesuré.
 
+**Les sous-titres se transcrivent avec OpenAI, jamais avec Whisper local.**
+`npm run transcribe -- <slug> --openai`, une transcription par rush :
+`--audio media/proxy/<nom>.mp4 --out captions/<nom>.json`. Whisper local est
+trop lent (une vingtaine de minutes pour deux minutes de rushes). La clé est
+dans `.env`. La vérification d'un bloc isolé passe aussi par `--openai`.
+
 **Un rush 4K, HEVC, HDR ou 60 fps passe par `npm run proxy`** avant d'être
 monté, et le plan pointe sur `media/proxy/`. Sinon le rendu casse sur un délai
 d'extraction de frame, et les couleurs sont fausses.
 
 **`npm run validate -- <slug>` avant d'annoncer quoi que ce soit.** Un plan non
 valide n'est pas un montage.
+
+**Toute version intermédiaire se rend en brouillon.**
+`npm run render -- <slug> --draft` sort un 540 × 960 à 15 fps en quelques
+dizaines de secondes, là où le rendu livrable prend jusqu'à vingt minutes en
+60 fps. On y juge le montage : rythme, coupes, synchro des sous-titres,
+placement des textes. Le rendu pleine résolution ne se lance qu'une fois, sur la
+version validée. **Le brouillon m'est livré** (chemin du fichier et frames
+contrôlées) dès que le plan passe `validate`, avant toute autre étape : c'est
+moi qui valide le montage, pas un rendu final lancé d'office.
 
 **Vérifie le contenu d'un bloc en le transcrivant isolément**, plutôt que de le
 déduire des timings.
@@ -83,8 +98,11 @@ plan décrit *quoi*, les composants décrivent *comment*. Si une demande ne peut
 pas s'exprimer dans le schéma actuel, étends `src/schema.ts` et le composant
 concerné, puis documente le champ dans `docs/PLAN.md`.
 
-**Le format est figé : 1080 × 1920, 30 fps, H.264.** Pas de variante sans
-demande explicite.
+**Le format est figé : 1080 × 1920, H.264, 60 fps pour l'export final.**
+`plan.fps` vaut 60, même quand les rushes sont en 30 fps. Le proxy garde la
+cadence des rushes (`npm run proxy -- <slug> --fps 60`) : un rush en 30 fps
+reste en 30, Remotion double ses images au rendu. Le brouillon, lui, reste en
+15 fps. Pas d'autre variante sans demande explicite.
 
 **Tout texte reste dans la zone sûre**, que l'interface TikTok recouvre : 130 px
 en haut, 320 px en bas, 60 px à gauche, 120 px à droite (la colonne de boutons).
@@ -103,6 +121,12 @@ mordre sur les cheveux, pas sur les yeux ni la bouche. Se vérifie sur un
 `npx remotion still` avant le rendu. Une image détourée (fond transparent, comme
 une trace Strava) se pose telle quelle, sans `background` : sur une carte
 blanche, la trace ne se voit plus.
+
+**Une capture s'incruste en entier.** Un sticker Strava porte distance,
+dénivelé, temps, trace et logo, en texte blanc sur fond transparent : sur un
+aperçu à fond blanc, on ne voit que la trace. On l'inspecte sur fond sombre, et
+un recadrage se calcule sur la transparence, jamais sur la couleur. Un chiffre
+dit à l'oral qui contredit la capture ne s'affiche pas à côté d'elle.
 
 **Pas de tiret cadratin** (,), ni dans les textes incrustés ni dans les fichiers
 écrits. Convention de ce dépôt : une virgule, un point ou deux-points font le

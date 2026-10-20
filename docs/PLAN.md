@@ -296,6 +296,14 @@ deux, cas fréquent sur le vocabulaire technique :
 "replace": {"on boarding": "onboarding", "Odissey": "Odyssa"}
 ```
 
+À l'inverse, une **valeur** en plusieurs mots redonne plusieurs mots karaoké :
+la durée du groupe remplacé se partage entre eux au prorata de leur longueur.
+C'est ce qui corrige une phrase mal entendue sans qu'elle s'allume d'un bloc :
+
+```json
+"replace": {"si j'ai toujours envie": "si je suis toujours en vie"}
+```
+
 **`y` positionne la dernière ligne, pas le centre du bloc.** Les sous-titres
 sont ancrés par le bas : une page qui passe sur deux lignes monte, au lieu de
 descendre sous la légende TikTok. Ce bord bas ne franchit jamais la

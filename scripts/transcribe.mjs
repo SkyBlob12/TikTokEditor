@@ -110,7 +110,7 @@ if (flag('openai')) {
 
   // L'API plafonne a 25 Mo. On n'envoie jamais le rush : on extrait une piste
   // audio compressee, ce qui suffit largement a la transcription.
-  const mp3Path = path.join(os.tmpdir(), `tiktok-editor-${slug}.mp3`);
+  const mp3Path = path.join(os.tmpdir(), `tiktok-editor-${slug}-${process.pid}.mp3`);
   console.log('Extraction de la piste audio...');
   await execFileAsync('ffmpeg', [
     '-y', '-i', audioPath,

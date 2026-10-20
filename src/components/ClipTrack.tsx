@@ -89,7 +89,19 @@ export const ClipTrack: React.FC<{clips: Clip[]; project: string}> = ({clips, pr
     <>
       {clips.map((clip, i) => {
         const from = Math.round(clip.start * fps);
-        const durationInFrames = Math.max(1, Math.round(clip.duration * fps));
+
+        // Un clip colle au suivant : sa fin est la frame ou le suivant commence,
+        // pas sa duree arrondie de son cote. Arrondir `start` et `duration`
+        // separement laisse un trou d'une frame quand les deux arrondis tombent
+        // du mauvais cote, et ce trou se voit : un eclair noir sur la coupe.
+        const suivant = clips[i + 1];
+        const colle =
+          suivant !== undefined &&
+          Math.abs(suivant.start - (clip.start + clip.duration)) < 0.001;
+        const fin = colle
+          ? Math.round(suivant.start * fps)
+          : from + Math.round(clip.duration * fps);
+        const durationInFrames = Math.max(1, fin - from);
         return (
           <Sequence
             key={`${clip.src}-${i}`}

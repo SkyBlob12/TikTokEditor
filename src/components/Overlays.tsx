@@ -155,6 +155,11 @@ const OverlayItem: React.FC<{
       .join(' '),
     opacity: anim.opacity,
     filter: anim.filter,
+    // Pose en absolu a `left: centerX`, un bloc sans largeur explicite ne
+    // dispose que de l'espace a sa droite (540 px au centre) et passe a la
+    // ligne bien avant `maxWidth`. `max-content` le laisse prendre sa largeur
+    // naturelle, que `maxWidth` borne.
+    width: 'max-content',
     maxWidth,
   };
 

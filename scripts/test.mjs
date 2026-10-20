@@ -282,6 +282,19 @@ test('un mot isolé de la clé multiple reste intact', () => {
   assert.deepEqual(out.map((w) => w.text), ['on', 'voit']);
 });
 
+test('une valeur en plusieurs mots redevient plusieurs mots', () => {
+  // "si j'ai toujours envie" entendu pour "si je suis toujours en vie".
+  const out = applyReplacements(
+    [mot('si', 0, 100), mot("j'ai", 100, 300), mot('envie.', 300, 700)],
+    {"j'ai": 'je suis', envie: 'en vie'},
+  );
+  assert.deepEqual(out.map((w) => w.text), ['si', 'je', 'suis', 'en', 'vie.']);
+  assert.equal(out[1].startMs, 100);
+  assert.equal(out[2].endMs, 300);
+  assert.equal(out[3].startMs, 300);
+  assert.equal(out[4].endMs, 700);
+});
+
 test('sans corrections, la liste est rendue telle quelle', () => {
   const mots = [mot('bonjour', 0, 500)];
   assert.equal(applyReplacements(mots, undefined), mots);

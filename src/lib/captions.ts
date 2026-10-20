@@ -115,12 +115,34 @@ export const applyReplacements = (
     }
     const dernier = words[i + match.tokens.length - 1];
     const finale = dernier.text.trim().match(PONCTUATION_FINALE)?.[0] ?? '';
-    out.push({
-      ...words[i],
-      text: match.valeur + finale,
-      endMs: dernier.endMs,
-      timestampMs: dernier.timestampMs,
-    });
+    const valeurs = match.valeur.trim().split(/\s+/);
+    if (valeurs.length === 1) {
+      out.push({
+        ...words[i],
+        text: match.valeur + finale,
+        endMs: dernier.endMs,
+        timestampMs: dernier.timestampMs,
+      });
+    } else {
+      // Une valeur en plusieurs mots redevient plusieurs mots karaoke : la
+      // duree du groupe se partage au prorata de leur longueur.
+      const debut = words[i].startMs;
+      const duree = dernier.endMs - debut;
+      const total = valeurs.reduce((n, v) => n + v.length, 0);
+      let cumul = 0;
+      valeurs.forEach((v, k) => {
+        const startMs = Math.round(debut + (duree * cumul) / total);
+        cumul += v.length;
+        const endMs = Math.round(debut + (duree * cumul) / total);
+        out.push({
+          ...words[i],
+          text: k === valeurs.length - 1 ? v + finale : v,
+          startMs,
+          endMs,
+          timestampMs: Math.round((startMs + endMs) / 2),
+        });
+      });
+    }
     i += match.tokens.length - 1;
   }
   return out;
